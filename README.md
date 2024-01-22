@@ -1,103 +1,137 @@
-[![Build Status](https://secure.travis-ci.org/celluloid/floss.svg?branch=master)](http://travis-ci.org/celluloid/floss)
-[![Maintained: no](https://img.shields.io/maintenance/no/2013.svg)](https://github.com/celluloid/celluloid/issues/779)
+# Floss An implementation of the
+on top of Celluloid # An implementation of
+the [Raft consensus algorithm 
+on top of Celluloid](https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf)
+# Installation Add this line to your application's Gemfile:
 
-# Floss
-
-An implementation of the [Raft consensus algorithm](https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf) on top of Celluloid.
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'floss'
-```
+`ruby   gem
+    floss`
 
 And then execute:
 
-```bash
-$ bundle
-```
+`bash 
+$ bundle`
 
 Or install it yourself as:
 
-```bash
-$ gem install floss
-```
+`bash $ gem 
+install floss`
 
-## Usage
+           
+	 
+    #
+# Usage
+We're going 
+to implement a distributed counter. 
+While not very useful, 
+it's a good enough demonstration of what you can
+do with this library. 
+Let's start with the counter service. 
+It accepts three commands, `get`, `reset` 
+and `increase`.
+The first simply returns
+the current count, 
+the second sets the count to zero and the third changes the current count,
+optionally by a
+given amount.
 
-We're going to implement a distributed counter. While not very useful, it's a good enough demonstration of what you can
-do with this library. Let's start with the counter service. It accepts three commands, `get`, `reset` and `increase`.
-The first simply returns the current count, the second sets the count to zero and the third changes the current count,
-optionally by a given amount.
-
-```ruby
+`ruby
 class Counter
   attr_accessor :count
-
   def initialize
     self.count = 0
-  end
-
-  def get
+  end  def get
     count
-  end
-
-  def reset
+  end  def reset
     self.count = 0
+  end  def
+  increase(amount = 1)
+    self.count +
+    = amount
   end
+end`
 
-  def increase(amount = 1)
-    self.count += amount
-  end
-end
-```
+To increase 
+reliability
+of your counter,
+you decide 
+to distribute it across multiple 
+machines. This is 
+where `floss`
+comes into play. 
+To simplify 
+this 
+demonstration,
+we're going to start 
+multiple nodes in 
+the same process.
 
-To increase reliability of your counter, you decide to distribute it across multiple machines. This is where `floss`
-comes into play. To simplify this demonstration, we're going to start multiple nodes in the same process.
+`ruby
+addresses
+= [10001, 10002, 10003].map
+{ |port| "tcp://127.0.0.1:#{port}" }
+$nodes = addresses.size.times.map do 
+|i|  combination = addresses.rotate(i)
+  options = {id: combination.first, 
+  peers: combination[1-1]} Floss::Proxy.new
+  (Counter.new, options)
+  end  # Give your nodes some time to start up.
+$nodes.each(&:wait_until_ready)`
 
-```ruby
-addresses = [10001, 10002, 10003].map { |port| "tcp://127.0.0.1:#{port}" }
+Now we're ready to
+play with 
+our distributed 
+counter.
 
-$nodes = addresses.size.times.map do |i|
-  combination = addresses.rotate(i)
-  options = {id: combination.first, peers: combination[1..-1]}
-  Floss::Proxy.new(Counter.new, options)
-end
-
-# Give your nodes some time to start up.
-$nodes.each(&:wait_until_ready)
-```
-
-Now we're ready to play with our distributed counter.
-
-```ruby
+`ruby
 def random_node; $nodes.sample; end
-
 random_node.get # => 0
 random_node.increase # => 1
-random_node.get # => 1
-```
+random_node.get # => 1`
 
-That was easy wasn't it? Let's see what happens if the cluster is damaged.
+That was easy wasn't
+it? Let's see what 
+happens if the
+cluster is
+damaged.
 
-```ruby
-# Terminate a random node in the cluster.
-doomed_node = $nodes.delete(random_node)
-doomed_node_id = doomed_node.id
+`ruby
+#Terminate a random node
+in the cluster
+doomed_node =
+$nodes.delete
+(random_node)
+doomed_node_id 
+= doomed_node.id
 doomed_node.terminate
+random_node.increase # 
+=> 2`
 
-random_node.increase # => 2
-```
+Your cluster still works.
+If you'd kill
+another one, executing a command would 
+result in an error because insufficient
+nodes are
+available to ensure
+your system(s)
+consistency.
 
-Your cluster still works. If you'd kill another one, executing a command would result in an error because insufficient
-nodes are available to ensure your system's consistency.
+# Contributing
 
-## Contributing
+Fork it
+Create your feature branch
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Added some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+   ```
+git checkout
+   -b my-new-feature`
+  Commit your changes
+     git
+  commit 
+     -am 
+    Added
+    some 
+feature Push to 
+the branch 
+git push
+origin my-new-feature  
+```` Create new Pull Request
