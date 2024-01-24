@@ -1,3 +1,4 @@
+2024 (c) Alexander petree  <Apetree1001@email.phoenix.edu>
 require 'logger' logger = 
 Logger.new(STDOUT)
 logger.level = Logger::WARN
